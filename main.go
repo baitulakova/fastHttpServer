@@ -20,6 +20,8 @@ func createStorage() string {
 	return fileStorage
 }
 
+var storage string
+
 func uploadHandlerFunc(ctx *fasthttp.RequestCtx){
 	if string(ctx.Method())=="POST"{
 		file,err:=ctx.FormFile("file")
@@ -27,7 +29,7 @@ func uploadHandlerFunc(ctx *fasthttp.RequestCtx){
 			ctx.SetStatusCode(400)
 			log.Fatal(err)
 		}
-		err=fasthttp.SaveMultipartFile(file,createStorage()+file.Filename)
+		err=fasthttp.SaveMultipartFile(file,storage+file.Filename)
 		if err!=nil{
 			log.Fatal(err)
 		}
@@ -43,7 +45,7 @@ func downloadHandlerFunc(ctx *fasthttp.RequestCtx){
 		ctx.SetStatusCode(404)
 		log.Fatal("Error in upload file. File not found")
 	}
-	f,err:=os.Open(createStorage()+string(filename))
+	f,err:=os.Open(storage+string(filename))
 	if err!=nil{
 		ctx.SetStatusCode(404)
 		log.Fatal("Error opening file: ",err)
@@ -58,6 +60,8 @@ func handlerFunc(ctx *fasthttp.RequestCtx){
 }
 
 func main(){
+	storage=createStorage()
+
 	flag.Parse()
 
 	m:=func(ctx *fasthttp.RequestCtx){
