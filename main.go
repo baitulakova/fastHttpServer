@@ -10,7 +10,7 @@ import (
 
 var addr=flag.String("addr","127.0.0.1:8080","TCP address to listen to for incoming connections")
 
-func createStorage() (path string){
+func createStorage() string {
 	userHome:=os.Getenv("HOME")
 	fileStorage := userHome+"/fasthttpServerStorage/"
 	err:=os.MkdirAll(fileStorage,os.ModePerm)
