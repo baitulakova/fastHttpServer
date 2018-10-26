@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"fmt"
+	"io"
 )
 
 var addr=flag.String("addr","127.0.0.1:8080","TCP address to listen to for incoming connections")
@@ -15,7 +16,7 @@ func createStorage() string {
 	fileStorage := userHome+"/fasthttpServerStorage/"
 	err:=os.MkdirAll(fileStorage,os.ModePerm)
 	if err!=nil{
-		fmt.Println("error",err)
+		fmt.Println(err)
 	}
 	return fileStorage
 }
@@ -31,12 +32,26 @@ func uploadHandlerFunc(ctx *fasthttp.RequestCtx){
 		if err!=nil{
 			log.Fatal(err)
 		}
+		ctx.SetStatusCode(200)
 		log.Println("Uploaded ",file.Filename," file")
 	}
 }
 
 func downloadHandlerFunc(ctx *fasthttp.RequestCtx){
-
+	file:=ctx.URI().QueryArgs()
+	filename:=file.Peek("filename")
+	if string(filename)==""{
+		ctx.SetStatusCode(404)
+		log.Fatal("Error in upload file. File not found")
+	}
+	f,err:=os.Open(createStorage()+string(filename))
+	if err!=nil{
+		ctx.SetStatusCode(404)
+		log.Fatal("Error opening file: ",err)
+	}
+	defer f.Close()
+	io.Copy(ctx,f)
+	ctx.SetStatusCode(200)
 }
 
 func handlerFunc(ctx *fasthttp.RequestCtx){
@@ -50,7 +65,7 @@ func main(){
 		switch string(ctx.Path()) {
 		case "/upload":
 			uploadHandlerFunc(ctx)
-		case "download":
+		case "/download":
 			downloadHandlerFunc(ctx)
 		case "/":
 			handlerFunc(ctx)
