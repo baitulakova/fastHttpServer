@@ -4,13 +4,35 @@ import (
 	"flag"
 	"github.com/valyala/fasthttp"
 	"log"
+	"os"
+	"fmt"
 )
 
 var addr=flag.String("addr","127.0.0.1:8080","TCP address to listen to for incoming connections")
 
+func createStorage() (path string){
+	userHome:=os.Getenv("HOME")
+	fileStorage := userHome+"/fasthttpServerStorage/"
+	err:=os.MkdirAll(fileStorage,os.ModePerm)
+	if err!=nil{
+		fmt.Println("error",err)
+	}
+	return fileStorage
+}
 
 func uploadHandlerFunc(ctx *fasthttp.RequestCtx){
-
+	if string(ctx.Method())=="POST"{
+		file,err:=ctx.FormFile("file")
+		if err!=nil{
+			ctx.SetStatusCode(400)
+			log.Fatal(err)
+		}
+		err=fasthttp.SaveMultipartFile(file,createStorage()+file.Filename)
+		if err!=nil{
+			log.Fatal(err)
+		}
+		log.Println("Uploaded ",file.Filename," file")
+	}
 }
 
 func downloadHandlerFunc(ctx *fasthttp.RequestCtx){
