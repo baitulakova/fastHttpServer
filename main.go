@@ -5,7 +5,6 @@ import (
 	"github.com/valyala/fasthttp"
 	"log"
 	"os"
-	"fmt"
 	"io"
 )
 
@@ -16,7 +15,7 @@ func createStorage() string {
 	fileStorage := userHome+"/fasthttpServerStorage/"
 	err:=os.MkdirAll(fileStorage,os.ModePerm)
 	if err!=nil{
-		fmt.Println(err)
+		log.Fatal(err)
 	}
 	return fileStorage
 }
